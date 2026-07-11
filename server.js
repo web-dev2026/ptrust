@@ -4,6 +4,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { v2 as cloudinary } from 'cloudinary';
 import { Resend } from 'resend';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
@@ -179,6 +181,17 @@ app.post('/api/contact', async (req, res) => {
     console.error('Email sending error:', error);
     res.status(500).json({ error: 'Failed to send email. Please try again.' });
   }
+});
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Serve static files from the React frontend build
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Catch-all route to serve the React index.html for frontend routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 app.listen(PORT, () => {

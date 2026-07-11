@@ -219,6 +219,8 @@ const BANK_DETAILS = {
 const DEFAULT_ARTICLES = [];
 const DEFAULT_VIDEOS = [];
 
+const API_BASE = '';
+
 function App() {
   const [lang, setLang] = useState('en');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -248,18 +250,17 @@ function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const artRes = await fetch('/api/articles');
-        if (artRes.ok) {
-          const data = await artRes.json();
-          setArticles(data);
-        }
-        const vidRes = await fetch('/api/videos');
-        if (vidRes.ok) {
-          const data = await vidRes.json();
-          setVideos(data);
-        }
+        const artRes = await fetch(`${API_BASE}/api/articles`);
+        const artData = await artRes.json();
+        setArticles(artData.length > 0 ? artData : DEFAULT_ARTICLES);
+
+        const vidRes = await fetch(`${API_BASE}/api/videos`);
+        const vidData = await vidRes.json();
+        setVideos(vidData.length > 0 ? vidData : DEFAULT_VIDEOS);
       } catch (error) {
-        console.error("Failed to fetch initial content:", error);
+        console.error('Error fetching data:', error);
+        setArticles(DEFAULT_ARTICLES);
+        setVideos(DEFAULT_VIDEOS);
       }
     };
     fetchData();
@@ -302,12 +303,11 @@ function App() {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onloadend = async () => {
-      const base64Data = reader.result;
       try {
-        const res = await fetch('/api/upload', {
+        const res = await fetch(`${API_BASE}/api/upload`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64Data })
+          body: JSON.stringify({ image: reader.result })
         });
         if (res.ok) {
           const data = await res.json();
@@ -363,15 +363,10 @@ function App() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/contact', {
+      const res = await fetch(`${API_BASE}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          phone: form.phone || '',
-          message: form.message
-        })
+        body: JSON.stringify(form)
       });
 
       const data = await res.json();
@@ -436,7 +431,7 @@ function App() {
     };
 
     try {
-      const res = await fetch('/api/articles', {
+      const res = await fetch(`${API_BASE}/api/articles`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newArticle)
@@ -486,7 +481,7 @@ function App() {
     };
 
     try {
-      const res = await fetch('/api/videos', {
+      const res = await fetch(`${API_BASE}/api/videos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newVideo)
@@ -514,7 +509,7 @@ function App() {
   const handleDeleteArticle = async (id) => {
     if (confirm(lang === 'en' ? 'Are you sure you want to delete this article?' : 'ಈ ಲೇಖನವನ್ನು ಅಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿ ಬಯಸುವಿರಾ?')) {
       try {
-        const res = await fetch(`/api/articles/${id}`, {
+        const res = await fetch(`${API_BASE}/api/articles/${id}`, {
           method: 'DELETE'
         });
         if (res.ok) {
@@ -531,7 +526,7 @@ function App() {
   const handleDeleteVideo = async (id) => {
     if (confirm(lang === 'en' ? 'Are you sure you want to delete this video?' : 'ಈ ವೀಡಿಯೊವನ್ನು ಅಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿ ಬಯಸುವಿರಾ?')) {
       try {
-        const res = await fetch(`/api/videos/${id}`, {
+        const res = await fetch(`${API_BASE}/api/videos/${id}`, {
           method: 'DELETE'
         });
         if (res.ok) {
